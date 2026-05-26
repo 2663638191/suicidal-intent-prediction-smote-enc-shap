@@ -37,4 +37,4 @@ This study addresses three key challenges in psychological screening:
 
 Install all dependencies:
 ```bash
-pip install -r requirements.txt
+pip install -r requirements.txt```
