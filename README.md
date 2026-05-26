@@ -23,6 +23,26 @@ This study addresses three key challenges in psychological screening:
 2. It was verified that logistic regression was the optimal model in the CCSMHSS data set of this study, achieving a high-risk sample recall rate of 96.2%.
 3. Through the SHAP explainability framework, the core predictors of college students' suicidal intentions were clarified, providing a scientific basis for targeted intervention.
 
+---
+
+## 数据可用性 | Data Availability
+重要声明 | Important Notice：本研究使用的 6272 份高校新生心理健康普查原始数据涉及个人隐私，受严格的伦理审查和法律保护，无法公开共享。
+仓库中仅提供data/sample_data.csv作为数据格式示例，您需要使用自己的数据集按照相同格式整理后运行代码。
+The original mental health census data of 6,272 college freshmen used in this study involves personal privacy, protected by strict ethical review and legal regulations, and cannot be publicly shared.
+Only data/sample_data.csv is provided in the repository as a data format example. You need to use your own dataset organized in the same format to run the code.
+
+---
+
+## 数据可用性 | Data Availability
+所有论文中的结果图已保存在figures/文件夹中，与论文发表版本完全一致：
+ROC_Curves.png：6 种机器学习模型的 ROC 曲线对比
+Recall_Comparison.png：SMOTE-ENC 数据增强前后各模型召回率对比
+SHAP_Beeswarm.png：逻辑回归模型的全局特征重要性蜂群图
+SHAP_Waterfall_179.png：典型高风险样本的个体水平解释瀑布图
+All result figures in the paper are saved in the figures/ folder, completely consistent with the published version of the paper.
+
+---
+
 ## Requirements
 - Python 3.13.5
 - scikit-learn 1.8.0
@@ -38,3 +58,43 @@ This study addresses three key challenges in psychological screening:
 Install all dependencies:
 ```bash
 pip install -r requirements.txt
+```
+
+---
+
+## 快速开始 | Quick Start
+1.Clone the repository
+```bash
+git clone https://github.com/2663638191/suicidal-intent-prediction-smote-enc-shap.git
+cd suicidal-intent-prediction-smote-enc-shap
+```
+2.Install dependencies
+```bash
+pip install -r requirements.txt
+```
+3.Run the code
+Jupyter Notebook: Open suicidal_intent.ipynb and run all cells
+Python script:
+```bash
+python suicidal_intent.py
+```
+
+---
+
+##  仓库结构 | Repository Structure
+```plaintext
+suicidal-intent-prediction-smote-enc-shap/
+├── data/                     # 数据目录 | Data directory
+│   └── sample_data.csv       # 示例数据格式 | Sample data format (no real data)
+├── figures/                  # 论文结果图 | Paper result figures
+│   ├── ROC_Curves.png        # 6种模型ROC曲线对比
+│   ├── Recall_Comparison.png # SMOTE-ENC前后召回率对比
+│   ├── SHAP_Beeswarm.png     # SHAP全局特征重要性蜂群图
+│   └── SHAP_Waterfall_179.png # 典型高风险样本解释瀑布图
+├── .gitignore                # Git忽略规则 | Git ignore rules
+├── LICENSE                   # MIT许可证 | MIT License
+├── README.md                 # 本说明文档 | This document
+├── requirements.txt          # 依赖包列表 | Dependencies
+├── suicidal_intent.ipynb     # Jupyter Notebook完整代码 | Complete Jupyter Notebook code
+└── suicidal_intent.py        # Python脚本完整代码 | Complete Python script code
+```
