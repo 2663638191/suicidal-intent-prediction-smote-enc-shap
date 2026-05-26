@@ -1,0 +1,50 @@
+# Python 通用忽略项
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Jupyter Notebook 忽略项
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# 数据文件（绝对禁止上传原始数据）
+*.xlsx
+*.xls
+*.csv
+!data/sample_data.csv  # 只允许上传示例数据文件
+
+# 结果文件（运行代码自动生成的，不需要上传）
+result/
+results/
+output/
+# 根目录和results目录下的图片不上传
+*.png
+*.jpg
+*.jpeg
+*.pdf
+# 但figures目录下的论文结果图允许上传
+!figures/*.png
+
+# 本地配置文件
+*.env
+*.config
+.vscode/
+.idea/
