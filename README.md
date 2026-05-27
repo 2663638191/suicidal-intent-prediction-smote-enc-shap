@@ -33,7 +33,7 @@ Only data/sample_data.csv is provided in the repository as a data format example
 
 ---
 
-## 数据可用性 | Data Availability
+## 结果 | Results
 所有论文中的结果图已保存在figures/文件夹中，与论文发表版本完全一致：
 ROC_Curves.png：6 种机器学习模型的 ROC 曲线对比
 Recall_Comparison.png：SMOTE-ENC 数据增强前后各模型召回率对比
@@ -42,6 +42,33 @@ SHAP_Waterfall_179.png：典型高风险样本的个体水平解释瀑布图
 All result figures in the paper are saved in the figures/ folder, completely consistent with the published version of the paper.
 
 ---
+
+## 量表说明 | CCSMHSS Scale Description
+量表介绍 | Introduction
+本研究使用中国大学生心理健康筛查量表（Chinese College Student Mental Health Screening Scale, CCSMHSS），这是中国教育部统一推广使用的标准化高校新生心理健康普查工具。
+该量表采用三级筛查体系设计，共包含 96 个题目，全面覆盖大学生心理健康的各个维度：
+一级筛查：严重心理危机（自杀意图、幻觉妄想）
+二级筛查：内化性心理问题 + 外化性心理问题（共 18 个维度）
+三级筛查：一般压力与适应困扰（共 5 个维度）
+完整的量表题目和维度对应关系请查看：data/CCSMHSS_Scale_Description.xlsx
+
+This study adopts the Chinese College Student Mental Health Screening Scale (CCSMHSS), a standardized mental health census tool for Chinese college freshmen uniformly promoted by the Ministry of Education of the People's Republic of China.
+This scale is designed with a three-level screening system and contains a total of 96 items, covering all dimensions of Chinese college students' mental health comprehensively:
+Level 1 Screening: Severe psychological crisis (suicidal ideation, hallucination and delusion)
+Level 2 Screening: Internalized psychological problems + Externalized psychological problems (18 dimensions in total)
+Level 3 Screening: General stress and adjustment distress (5 dimensions in total)
+For the complete correspondence between scale items and dimensions, please refer to: data/CCSMHSS_Scale_Description.xlsx
+
+## 数据格式说明 | Data Format
+本研究使用各维度的标准分作为模型输入特征：
+连续特征：22 个维度的标准分（Z-score 标准化）
+分类特征：性别、民族、生源地、是否独生子女
+目标变量：自杀意图（Suicide_Intent），二分类标签（1 = 阳性，0 = 阴性）
+
+This study uses the standard scores of each dimension as the input features for the model:
+Continuous features: 22 standard scores of dimensions (Z-score standardized)
+Categorical features: gender, ethnicity, place of origin, whether an only child
+Target variable: Suicide_Intent, a binary label (1 = positive, 0 = negative)
 
 ## Requirements
 - Python 3.13.5
@@ -84,17 +111,18 @@ python suicidal_intent.py
 ##  仓库结构 | Repository Structure
 ```plaintext
 suicidal-intent-prediction-smote-enc-shap/
-├── data/                     # 数据目录 | Data directory
-│   └── sample_data.csv       # 示例数据格式 | Sample data format (no real data)
-├── figures/                  # 论文结果图 | Paper result figures
-│   ├── ROC_Curves.png        # 6种模型ROC曲线对比
-│   ├── Recall_Comparison.png # SMOTE-ENC前后召回率对比
-│   ├── SHAP_Beeswarm.png     # SHAP全局特征重要性蜂群图
-│   └── SHAP_Waterfall_179.png # 典型高风险样本解释瀑布图
-├── .gitignore                # Git忽略规则 | Git ignore rules
+├── data/                     # 数据目录 | data directory
+│   ├── sample_data.csv       # 示例数据格式（无真实数据） | Sample data format (no real data)
+│   └── CCSMHSS_Scale_Description.xlsx  # CCSMHSS量表完整说明 | Complete Explanation of the CCSMHSS Scale
+├── figures/                  # 论文结果图 | Graph of the research results
+│   ├── ROC_Curves.png
+│   ├── Recall_Comparison.png
+│   ├── SHAP_Beeswarm.png
+│   └── SHAP_Waterfall_179.png
+├── .gitignore                # Git忽略规则 | Git Ignore Rules
 ├── LICENSE                   # MIT许可证 | MIT License
-├── README.md                 # 本说明文档 | This document
-├── requirements.txt          # 依赖包列表 | Dependencies
-├── suicidal_intent.ipynb     # Jupyter Notebook完整代码 | Complete Jupyter Notebook code
-└── suicidal_intent.py        # Python脚本完整代码 | Complete Python script code
+├── README.md                 # 本说明文档 | This instruction manual
+├── requirements.txt          # 依赖包列表 | Dependency package list
+├── suicidal_intent.ipynb     # Jupyter Notebook完整代码 | complete code
+└── suicidal_intent.py        # Python脚本完整代码 | complete code
 ```
