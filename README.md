@@ -2,8 +2,6 @@
 
 ## 论文信息 | Paper Information
 **标题 | Title**: Construction of Interpretable Machine Learning Prediction Framework and Identification of Influence Factors for Suicidal Intent Under Imbalanced Data Conditions  
-**作者 | Authors**: Liu He, Zhi Yin*  
-**机构 | Affiliation**: School of Statistics and Data Science, Ningbo University of Technology  
 **代码仓库 | Repository**: https://github.com/2663638191/suicidal-intent-prediction-smote-enc-shap
 ---
 
