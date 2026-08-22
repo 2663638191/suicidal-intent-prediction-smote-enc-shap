@@ -1,0 +1,145 @@
+import pandas as pd
+import numpy as np
+import os
+import time
+import warnings
+warnings.filterwarnings("ignore")
+
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.compose import ColumnTransformer
+from sklearn.model_selection import train_test_split, GridSearchCV, StratifiedKFold
+from sklearn.metrics import recall_score, roc_auc_score, fbeta_score
+from sklearn.linear_model import LogisticRegression
+from imblearn.over_sampling import SMOTENC
+from imblearn.pipeline import Pipeline
+
+def calculate_metrics(model, X_test, y_test):
+    y_pred = model.predict(X_test)
+    y_proba = model.predict_proba(X_test)[:, 1]
+    return {
+        "召回率": recall_score(y_test, y_pred, zero_division=0),
+        "AUC-ROC": roc_auc_score(y_test, y_proba),
+        "F2分数": fbeta_score(y_test, y_pred, beta=2, zero_division=0)
+    }
+
+def tune_logistic_regression(file_paths):
+    start_time = time.time()
+    # 1. 数据加载与清洗
+    all_dfs = []
+    for fp in file_paths:
+        if os.path.exists(fp):
+            df = pd.read_excel(fp, sheet_name=["严重心理危机", "一般心理问题", "潜在心理困扰", "无心理困扰"])
+            all_dfs.extend(df.values())
+    if not all_dfs:
+        print("错误：无有效数据文件！")
+        return None
+    merged_df = pd.concat(all_dfs, ignore_index=True)
+    cleaned_df = merged_df[merged_df['一致性得分'] >= 2].copy().reset_index(drop=True)
+    cleaned_df["有自杀意图"] = cleaned_df["可能问题"].apply(lambda x: 1 if "自杀意图" in str(x) else 0)
+    print(f"有效样本数：{cleaned_df.shape[0]} | 正样本占比：{cleaned_df['有自杀意图'].sum()/cleaned_df.shape[0]:.2%}")
+
+    # 2. 特征处理
+    skip_cols = ['学历层次', '入学年份', '出生日期', '总分', '家庭关系满意度',
+                 '学校及专业满意度', '可能问题', '测评等级', '提交时间',
+                 '一致性得分', '总用时(秒)', '自杀意图(指标标准分)']
+    skip_cols += [col for col in cleaned_df.columns if "(指标总分)" in col]
+    cat_cols = ["性别", "民族", "生源地", "是否独生"]
+    num_cols = [col for col in cleaned_df.columns if col not in skip_cols + cat_cols + ["有自杀意图"]]
+
+    # 独热编码
+    encoder = OneHotEncoder(drop='first', sparse_output=False, handle_unknown='ignore')
+    cat_encoded = encoder.fit_transform(cleaned_df[cat_cols])
+    cat_encoded_df = pd.DataFrame(cat_encoded, columns=encoder.get_feature_names_out(cat_cols)).reset_index(drop=True)
+    num_df = cleaned_df[num_cols].reset_index(drop=True)
+    X = pd.concat([num_df, cat_encoded_df], axis=1)
+    y = cleaned_df["有自杀意图"].values
+    assert X.shape[0] == len(y), "特征与标签样本数不一致！"
+
+    # 逻辑回归：数值特征标准化
+    preprocessor = ColumnTransformer(
+        transformers=[
+            ('num', StandardScaler(), num_cols),
+            ('cat', 'passthrough', cat_encoded_df.columns)
+        ]
+    )
+    cat_indices = [X.columns.get_loc(col) for col in cat_encoded_df.columns]
+
+    # 3. 分层拆分训练/测试集
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42, stratify=y)
+
+    # 4. 构建Pipeline
+    pipe = Pipeline([
+        ('preprocessor', preprocessor),
+        ('smote', SMOTENC(
+            categorical_features=cat_indices,
+            random_state=42,
+            sampling_strategy='auto'
+        )),
+        ('model', LogisticRegression(random_state=50))
+    ])
+
+    # 5. 网格搜索调参
+    param_grid = {
+        'model__solver': ['saga'],
+        'model__penalty': ['elasticnet'],
+        'model__C': [0.005, 0.01],
+        'model__l1_ratio': [0.20, 0.22, 0.24, 0.25, 0.26, 0.28, 0.30],
+        'model__class_weight': [{0: 1, 1: 4}, {0: 1, 1: 5}, {0: 1, 1: 6}],
+        'model__max_iter': [2000, 3000]
+    }
+    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    grid_search = GridSearchCV(
+        estimator=pipe,
+        param_grid=param_grid,
+        scoring='recall',
+        cv=cv,
+        verbose=1,
+        n_jobs=-1,
+        refit=True
+    )
+    grid_search.fit(X_train, y_train)
+
+    # 6. 最终指标计算
+    best_model = grid_search.best_estimator_
+    final_metrics = calculate_metrics(best_model, X_test, y_test)
+    
+    # 计算交叉验证平均召回率
+    cv_recall_list = []
+    for train_idx, val_idx in cv.split(X_train, y_train):
+        X_cv_train, X_cv_val = X_train.iloc[train_idx], X_train.iloc[val_idx]
+        y_cv_train, y_cv_val = y_train[train_idx], y_train[val_idx]
+        best_model.fit(X_cv_train, y_cv_train)
+        cv_recall = recall_score(y_cv_val, best_model.predict(X_cv_val), zero_division=0)
+        cv_recall_list.append(cv_recall)
+    avg_cv_recall = np.mean(cv_recall_list)
+
+    # 7. 结果保存
+    total_time = time.time() - start_time
+    save_path = os.path.join(os.path.expanduser("~"), "Desktop", "逻辑回归调参结果.xlsx")
+    result_df = pd.DataFrame({
+        "最佳参数": [str(grid_search.best_params_)],
+        "交叉验证平均召回率": [round(avg_cv_recall, 4)],
+        "测试集召回率": [round(final_metrics["召回率"], 4)],
+        "测试集AUC-ROC": [round(final_metrics["AUC-ROC"], 4)],
+        "测试集F2分数": [round(final_metrics["F2分数"], 4)],
+        "总耗时(分钟)": [round(total_time/60, 1)]
+    })
+    result_df.to_excel(save_path, index=False, engine='openpyxl')
+
+    print("\n===== 逻辑回归召回率优化完成 =====")
+    print(f"总耗时：{total_time/60:.1f} 分钟")
+    print(f"最佳参数：{grid_search.best_params_}")
+    print(f"交叉验证平均召回率：{avg_cv_recall:.4f}")
+    print(f"测试集召回率：{final_metrics['召回率']:.4f}")
+    print(f"结果文件保存至：{save_path}")
+    return best_model
+
+if __name__ == "__main__":
+    file_paths = [
+        r"C:\Users\DELL\Desktop\心理测评\测评结果-2025-1387.xlsx",
+        r"C:\Users\DELL\Desktop\心理测评\测评结果-2024-1284.xlsx",
+        r"C:\Users\DELL\Desktop\心理测评\测评结果-2023-1277.xlsx",
+        r"C:\Users\DELL\Desktop\心理测评\测评结果-2022-1269.xlsx",
+        r"C:\Users\DELL\Desktop\心理测评\测评结果-2021-1018.xlsx"
+    ]
+    tune_logistic_regression(file_paths)
