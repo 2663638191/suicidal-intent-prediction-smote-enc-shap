@@ -30,6 +30,12 @@ All result figures in the paper are saved in the figures/ folder, completely con
 
 ---
 
+## 调参说明 | Adjust parameter
+通过网格搜索结合5折交叉验证完成超参数调优
+
+Hyperparameter tuning is accomplished via grid search combined with 5-fold cross-validation
+---
+
 ## 量表说明 | CCSMHSS Scale Description
 量表介绍 | Introduction
 本研究使用中国大学生心理健康筛查量表（Chinese College Student Mental Health Screening Scale, CCSMHSS），这是中国教育部统一推广使用的标准化高校新生心理健康普查工具。
@@ -46,6 +52,8 @@ Level 2 Screening: Internalized psychological problems + Externalized psychologi
 Level 3 Screening: General stress and adjustment distress (5 dimensions in total)
 For the complete correspondence between scale items and dimensions, please refer to: data/CCSMHSS_Scale_Description.xlsx
 
+---
+
 ## 数据格式说明 | Data Format
 本研究使用各维度的标准分作为模型输入特征：
 连续特征：22 个维度的标准分（Z-score 标准化）
@@ -57,7 +65,9 @@ Continuous features: 22 standard scores of dimensions (Z-score standardized)
 Categorical features: gender, ethnicity, place of origin, whether an only child
 Target variable: Suicide_Intent, a binary label (1 = positive, 0 = negative)
 
-## Requirements
+---
+
+## 要求 | Requirements
 - Python 3.13.5
 - scikit-learn 1.8.0
 - xgboost 3.2.0
@@ -101,6 +111,7 @@ suicidal-intent-prediction-smote-enc-shap/
 ├── data/                     # 数据目录 | data directory
 │   ├── sample_data.csv       # 示例数据格式（无真实数据） | Sample data format (no real data)
 │   └── CCSMHSS_Scale_Description.xlsx  # CCSMHSS量表完整说明 | Complete Explanation of the CCSMHSS Scale
+├── adjust parameter/         # 调参（通过网格搜索结合5折交叉验证完成超参数调优）
 ├── figures/                  # 论文结果图 | Graph of the research results
 │   ├── ROC_Curves.png
 │   ├── Recall_Comparison.png
