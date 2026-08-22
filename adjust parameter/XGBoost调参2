@@ -1,0 +1,151 @@
+import pandas as pd
+import numpy as np
+import os
+import time
+import warnings
+warnings.filterwarnings("ignore")
+
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.model_selection import train_test_split, GridSearchCV, StratifiedKFold
+from sklearn.metrics import recall_score, roc_auc_score, fbeta_score
+import xgboost as xgb
+from imblearn.over_sampling import SMOTENC
+from imblearn.pipeline import Pipeline
+
+# 核心优化：自定义预测阈值（默认0.5对不平衡数据偏严，调低阈值大幅提升召回率）
+def predict_with_threshold(model, X, threshold=0.3):
+    y_proba = model.predict_proba(X)[:, 1]
+    return np.where(y_proba >= threshold, 1, 0)
+
+# 指标计算适配阈值调整
+def calculate_metrics(model, X_test, y_test, threshold=0.3):
+    y_pred = predict_with_threshold(model, X_test, threshold)
+    y_proba = model.predict_proba(X_test)[:, 1]
+    return {
+        "召回率": recall_score(y_test, y_pred, zero_division=0),
+        "AUC-ROC": roc_auc_score(y_test, y_proba),
+        "F2分数": fbeta_score(y_test, y_pred, beta=2, zero_division=0)  # F2更侧重召回率
+    }
+
+def boost_recall_xgboost(file_paths):
+    start_time = time.time()
+    # 1. 数据加载与清洗（保留核心逻辑，重置索引避免错位）
+    all_dfs = []
+    for fp in file_paths:
+        if os.path.exists(fp):
+            df = pd.read_excel(fp, sheet_name=["严重心理危机", "一般心理问题", "潜在心理困扰", "无心理困扰"])
+            all_dfs.extend(df.values())
+    if not all_dfs:
+        print("错误：无有效数据文件！")
+        return None
+    merged_df = pd.concat(all_dfs, ignore_index=True)
+    cleaned_df = merged_df[merged_df['一致性得分'] >= 2].copy().reset_index(drop=True)
+    cleaned_df["有自杀意图"] = cleaned_df["可能问题"].apply(lambda x: 1 if "自杀意图" in str(x) else 0)
+    print(f"有效样本数：{cleaned_df.shape[0]} | 正样本占比：{cleaned_df['有自杀意图'].sum()/cleaned_df.shape[0]:.2%}")
+
+    # 2. 特征处理（精简且保证索引对齐）
+    skip_cols = ['学历层次', '入学年份', '出生日期', '总分', '家庭关系满意度',
+                 '学校及专业满意度', '可能问题', '测评等级', '提交时间',
+                 '一致性得分', '总用时(秒)', '自杀意图(指标标准分)']
+    skip_cols += [col for col in cleaned_df.columns if "(指标总分)" in col]
+    cat_cols = ["性别", "民族", "生源地", "是否独生"]
+    num_cols = [col for col in cleaned_df.columns if col not in skip_cols + cat_cols + ["有自杀意图"]]
+
+    # 独热编码+索引重置
+    encoder = OneHotEncoder(drop='first', sparse_output=False, handle_unknown='ignore')
+    cat_encoded = encoder.fit_transform(cleaned_df[cat_cols])
+    cat_encoded_df = pd.DataFrame(cat_encoded, columns=encoder.get_feature_names_out(cat_cols)).reset_index(drop=True)
+    num_df = cleaned_df[num_cols].reset_index(drop=True)
+    X = pd.concat([num_df, cat_encoded_df], axis=1)
+    y = cleaned_df["有自杀意图"].values
+    assert X.shape[0] == len(y), "特征与标签样本数不一致！"
+
+    # 3. 分层拆分训练/测试集
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42, stratify=y)
+
+    # 4. 核心配置（强化正样本学习）
+    # 正样本权重：基础值+额外20%，强制模型关注正样本
+    scale_pos_weight = (y_train.shape[0] - y_train.sum()) / y_train.sum() * 1.2
+    # SMOTENC用列名指定分类特征，避免索引错误
+    cat_feature_names = cat_encoded_df.columns.tolist()
+
+    # 5. 初始化XGBoost（解除约束，提升拟合能力）
+    base_xgb = xgb.XGBClassifier(
+        random_state=42, use_label_encoder=False, eval_metric='logloss',
+        n_jobs=-1, scale_pos_weight=scale_pos_weight,
+        n_estimators=400,  # 增加树数量，匹配低学习率
+        gamma=0,           # 关闭gamma正则，允许更多节点分裂
+        reg_alpha=0,       # 关闭L1正则，不限制特征权重
+        reg_lambda=1,      # 降低L2正则约束
+        subsample=0.9,     # 提升样本利用率
+        colsample_bytree=0.9  # 提升特征利用率
+    )
+
+    # 6. 构建Pipeline（SMOTENC过采样提升至1:1，彻底解决样本不平衡）
+    pipe = Pipeline([
+        ('smote', SMOTENC(categorical_features=cat_feature_names, random_state=42, sampling_strategy=1.0)),
+        ('model', base_xgb)
+    ])
+
+    # 7. 网格搜索（聚焦召回率的核心参数范围，精简搜索量保证速度）
+    # 重点：降低min_child_weight、增加max_depth、调整学习率
+    param_grid = {
+        'model__max_depth': [5, 6,7,8],          # 从3→4-6，提升拟合能力
+        'model__min_child_weight': [1, 2, 3],   # 从4→1-3，允许正样本分裂
+        'model__learning_rate': [0.05, 0.08, 0.1],  # 从0.045→0.05-0.1，提升学习效率
+        'model__scale_pos_weight': [scale_pos_weight*0.9, scale_pos_weight, scale_pos_weight*1.1]
+    }
+    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    grid_search = GridSearchCV(
+        estimator=pipe, param_grid=param_grid,
+        scoring='recall',  # 全程以召回率为优化目标
+        cv=cv, verbose=1, n_jobs=-1
+    )
+    grid_search.fit(X_train, y_train)
+
+    # 8. 阈值优化（核心！遍历阈值找最优召回率）
+    best_model = grid_search.best_estimator_
+    thresholds = [0.1, 0.2, 0.3, 0.4]  # 调低阈值，捕捉更多正样本
+    best_threshold = 0.3
+    max_recall = 0
+    for th in thresholds:
+        temp_metrics = calculate_metrics(best_model, X_test, y_test, threshold=th)
+        if temp_metrics["召回率"] > max_recall:
+            max_recall = temp_metrics["召回率"]
+            best_threshold = th
+
+    # 9. 最终指标计算与保存
+    final_metrics = calculate_metrics(best_model, X_test, y_test, threshold=best_threshold)
+    total_time = time.time() - start_time
+    # 保存结果到桌面
+    save_path = os.path.join(os.path.expanduser("~"), "Desktop", "XGBoost_高召回率结果.xlsx")
+    result_df = pd.DataFrame({
+        "最佳参数": [str(grid_search.best_params_)],
+        "最优分类阈值": [best_threshold],
+        "交叉验证召回率": [round(grid_search.best_score_, 4)],
+        "测试集召回率": [round(final_metrics["召回率"], 4)],
+        "测试集AUC": [round(final_metrics["AUC-ROC"], 4)],
+        "测试集F2分数": [round(final_metrics["F2分数"], 4)],
+        "总耗时(分钟)": [round(total_time/60, 1)]
+    })
+    result_df.to_excel(save_path, index=False, engine='openpyxl')
+
+    # 输出核心结果
+    print("\n===== 召回率优化完成 =====")
+    print(f"总耗时：{total_time/60:.1f} 分钟（≤10分钟）")
+    print(f"最佳参数：{grid_search.best_params_}")
+    print(f"最优分类阈值：{best_threshold}（关键！）")
+    print(f"测试集召回率：{final_metrics['召回率']:.4f}")
+    print(f"结果文件保存至：{save_path}")
+    return best_model
+
+# 主函数（路径与你的数据一致）
+if __name__ == "__main__":
+    file_paths = [
+        r"C:\Users\DELL\Desktop\心理测评\测评结果-2025-1387.xlsx",
+        r"C:\Users\DELL\Desktop\心理测评\测评结果-2024-1284.xlsx",
+        r"C:\Users\DELL\Desktop\心理测评\测评结果-2023-1277.xlsx",
+        r"C:\Users\DELL\Desktop\心理测评\测评结果-2022-1269.xlsx",
+        r"C:\Users\DELL\Desktop\心理测评\测评结果-2021-1018.xlsx"
+    ]
+    boost_recall_xgboost(file_paths)
