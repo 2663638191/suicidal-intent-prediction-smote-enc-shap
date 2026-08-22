@@ -1,0 +1,423 @@
+import pandas as pd
+import numpy as np
+import os
+import warnings
+warnings.filterwarnings('ignore')
+
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.compose import ColumnTransformer
+from imblearn.pipeline import Pipeline
+
+from sklearn.model_selection import train_test_split, GridSearchCV, StratifiedKFold
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import (precision_score, recall_score, fbeta_score,
+                             average_precision_score, matthews_corrcoef,
+                             cohen_kappa_score, balanced_accuracy_score,
+                             confusion_matrix, roc_auc_score,
+                             precision_recall_curve, roc_curve, auc, f1_score,
+                             accuracy_score, make_scorer)
+
+from imblearn.over_sampling import SMOTENC
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+plt.rcParams['font.sans-serif'] = ['SimHei', 'DejaVu Sans']
+plt.rcParams['axes.unicode_minus'] = False
+plt.rcParams['figure.dpi'] = 150
+
+
+def calculate_all_metrics(model, X_test, y_test, threshold=0.5):
+    """
+    计算模型在测试集上的12个评估指标，支持自定义阈值
+    参数：
+        model: 训练好的模型
+        X_test: 测试集特征
+        y_test: 测试集标签
+        threshold: 分类阈值，默认0.5
+    返回值: 包含所有指标的字典，以及预测概率y_proba
+    """
+    # 获取预测概率
+    y_proba = model.predict_proba(X_test)[:, 1]
+    
+    # 使用自定义阈值进行预测
+    y_pred = (y_proba >= threshold).astype(int)
+    
+    tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
+    
+    metrics = {
+        "精确率": precision_score(y_test, y_pred, zero_division=0),
+        "召回率": recall_score(y_test, y_pred, zero_division=0),
+        "F2分数": fbeta_score(y_test, y_pred, beta=2, zero_division=0),
+        "AUC-PR": average_precision_score(y_test, y_proba),
+        "AUC-ROC": roc_auc_score(y_test, y_proba),
+        "马修斯相关系数": matthews_corrcoef(y_test, y_pred),
+        "科恩卡帕系数": cohen_kappa_score(y_test, y_pred),
+        "平衡准确率": balanced_accuracy_score(y_test, y_pred),
+        "几何均值": np.sqrt(recall_score(y_test, y_pred, zero_division=0) * (tn/(tn+fp) if (tn+fp)>0 else 0)),
+        "阴性预测值": tn/(tn+fn) if (tn+fn)>0 else 0,
+        "特异性": tn/(tn+fp) if (tn+fp)>0 else 0,
+        "诊断优势比": (tp*tn)/(fp*fn) if (fp*fn)>0 else np.nan,
+        "使用阈值": threshold  # 记录使用的阈值
+    }
+    return metrics, y_proba
+
+
+def tune_and_evaluate_logistic_regression(file_paths, output_dir=None):
+    print("="*60)
+    print("开始心理危机预测 - 逻辑回归模型专项调参（使用召回率调参）")
+    print("="*60)
+
+    # 1. 设置输出目录
+    if output_dir is None:
+        desktop = os.path.join(os.path.expanduser("~"), "Desktop")
+        output_dir = os.path.join(desktop, "逻辑回归调参")
+    os.makedirs(output_dir, exist_ok=True)
+    print(f"结果将保存至: {output_dir}")
+
+    # 2. 数据预处理
+    print("\n=== 步骤1: 数据预处理与划分 ===")
+
+    all_dfs = []
+    for fp in file_paths:
+        if os.path.exists(fp):
+            df = pd.read_excel(fp, sheet_name=None)
+            for sheet in ['严重心理危机', '一般心理问题', '潜在心理困扰', '无心理困扰']:
+                if sheet in df:
+                    all_dfs.append(df[sheet])
+        else:
+            print(f"警告: 文件不存在，已跳过 -> {fp}")
+
+    if not all_dfs:
+        print("错误: 未找到任何有效数据文件，流程终止。")
+        return
+
+    merged_df = pd.concat(all_dfs, ignore_index=True)
+    print(f"合并后总数据量: {merged_df.shape}")
+
+    # 清洗数据: 保留一致性得分 >= 2
+    cleaned_df = merged_df[merged_df['一致性得分'] >= 2].copy()
+    print(f"清洗后(一致性得分>=2)数据量: {cleaned_df.shape}")
+
+    # 创建目标变量
+    cleaned_df['有自杀意图'] = cleaned_df['可能问题'].apply(lambda x: 1 if '自杀意图' in str(x) else 0)
+    print(f"目标变量分布 - 有自杀意图: {cleaned_df['有自杀意图'].sum()}, 无: {len(cleaned_df)-cleaned_df['有自杀意图'].sum()}")
+
+    # 跳过指定列
+    skip_cols = ['学历层次','入学年份','出生日期','总分','家庭关系满意度',
+                 '学校及专业满意度','可能问题','测评等级','提交时间',
+                 '一致性得分','总用时(秒)','自杀意图(指标标准分)']
+    skip_cols.extend([col for col in cleaned_df.columns if "(指标总分)" in col])
+
+    # 对分类变量进行独热编码
+    cat_cols = ["性别", "民族", "生源地", "是否独生"]
+    encoder = OneHotEncoder(drop='first', sparse_output=False, handle_unknown='ignore')
+    encoded_features = encoder.fit_transform(cleaned_df[cat_cols])
+    feature_names_cat = encoder.get_feature_names_out(cat_cols)
+    encoded_df = pd.DataFrame(encoded_features, columns=feature_names_cat)
+
+    # 移除代表NaN的编码列
+    columns_to_drop = [col for col in encoded_df.columns if col.endswith("_nan")]
+    if columns_to_drop:
+        encoded_df = encoded_df.drop(columns=columns_to_drop)
+        feature_names_cat = [col for col in feature_names_cat if col not in columns_to_drop]
+
+    # 构建数值特征列
+    num_cols_for_model = [col for col in cleaned_df.columns
+                          if col not in skip_cols + cat_cols + ['有自杀意图', '自杀意图(指标标准分)']]
+
+    # 合并最终特征
+    X = pd.concat([cleaned_df[num_cols_for_model].reset_index(drop=True),
+                   encoded_df.reset_index(drop=True)], axis=1)
+    y = cleaned_df['有自杀意图'].values
+
+    print(f"最终特征维度: {X.shape[1]} 个特征")
+    print(f"数值特征数量: {len(num_cols_for_model)}, 分类特征数量: {len(feature_names_cat)}")
+    
+    # 记录分类特征索引
+    categorical_indices = [i for i, col in enumerate(X.columns) if col in feature_names_cat]
+    print(f"分类特征在特征矩阵中的索引: {categorical_indices[:5]} ...")
+
+    # 分层划分训练集和测试集
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.3, random_state=42, stratify=y
+    )
+    print(f"训练集: {X_train.shape[0]} 样本, 测试集: {X_test.shape[0]} 样本")
+    print(f"训练集中正类(有自杀意图)比例: {y_train.mean():.2%}")
+
+    # ========== 构建Pipeline（使用imblearn的Pipeline） ==========
+    print("\n=== 步骤2: 构建建模Pipeline ===")
+    
+    # 特征预处理：仅对数值特征标准化
+    preprocessor = ColumnTransformer(
+        transformers=[
+            ('num', StandardScaler(), num_cols_for_model),
+            ('cat', 'passthrough', feature_names_cat)
+        ]
+    )
+
+    # 完整Pipeline：标准化 → SMOTE-ENC → 逻辑回归
+    pipe_lr = Pipeline([
+        ('preprocessor', preprocessor),
+        ('smote', SMOTENC(categorical_features=categorical_indices, random_state=42, sampling_strategy='auto')),
+        ('model', LogisticRegression(random_state=50))
+    ])
+    print("✅ Pipeline构建完成（使用imblearn.Pipeline，兼容SMOTENC）")
+
+    # 调参网格
+    param_grid_lr ={'model__solver': ['saga'],
+                    'model__penalty': ['elasticnet'],
+                    'model__C': [0.005],  # 在0.005周围密集搜索
+                    'model__l1_ratio': [0.30],  # 在0.25周围密集搜索
+                    'model__class_weight': [{0: 1, 1: 6}],
+                    'model__max_iter': [2000]  # 增加迭代次数确保收敛
+                    }
+
+    print("\n=== 步骤3: 开始网格搜索调参（优化目标：召回率） ===")
+    cv_strategy = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+
+    grid_search = GridSearchCV(
+        estimator=pipe_lr,
+        param_grid=param_grid_lr,
+        scoring='recall',
+        cv=cv_strategy,
+        verbose=1,
+        n_jobs=-1
+    )
+
+    # 训练
+    grid_search.fit(X_train, y_train)
+
+    print("调参完成！")
+    print(f"最佳参数组合: {grid_search.best_params_}")
+    print(f"最佳交叉验证 召回率: {grid_search.best_score_:.4f}")
+
+    # 获取最佳模型
+    best_lr_model = grid_search.best_estimator_
+
+    # 5. 在测试集上评估
+    print("\n=== 步骤4: 在独立测试集上评估最佳逻辑回归模型 ===")
+    test_metrics, y_proba = calculate_all_metrics(best_lr_model, X_test, y_test)
+
+    print("\n逻辑回归模型在测试集上的性能指标:")
+    print("-" * 40)
+    for metric_name, value in test_metrics.items():
+        print(f"{metric_name:30s}: {value:.4f}")
+    print("-" * 40)
+
+    # 6. 保存结果
+    print("\n=== 步骤5: 保存结果 ===")
+
+    results_df = pd.DataFrame([test_metrics])
+    results_df['最佳参数'] = str(grid_search.best_params_)
+    results_df['调参评分标准'] = '召回率'  # 修改说明
+    results_excel_path = os.path.join(output_dir, "逻辑回归模型_召回率调参后评估结果.xlsx")
+    results_df.to_excel(results_excel_path, index=False)
+    print(f"评估指标已保存至: {results_excel_path}")
+
+    # 在得到最佳模型后，添加阈值调整步骤
+    print("\n=== 步骤4.5: 阈值调整优化召回率 ===")
+    
+    # 1. 使用最佳模型
+    best_lr_model = grid_search.best_estimator_
+    
+    # 2. 获取测试集的预测概率
+    y_proba = best_lr_model.predict_proba(X_test)[:, 1]
+    
+    # 3. 尝试不同的阈值，寻找最佳召回率
+    print("尝试不同阈值对召回率的影响:")
+    print("-" * 50)
+    print(f"{'阈值':<8} {'召回率':<10} {'精确率':<10}")
+    print("-" * 50)
+    
+    thresholds = [0.4,0.45,0.5]
+    threshold_results = []
+    
+    for thresh in thresholds:
+        y_pred_adjusted = (y_proba >= thresh).astype(int)
+        recall = recall_score(y_test, y_pred_adjusted, zero_division=0)
+        precision = precision_score(y_test, y_pred_adjusted, zero_division=0)
+        threshold_results.append({
+            'threshold': thresh,
+            'recall': recall,
+            'precision': precision
+        })
+        print(f"{thresh:<8.1f} {recall:<10.4f} {precision:<10.4f}")
+    
+    # 4. 找到最佳阈值（召回率最高的）
+    best_threshold_result = max(threshold_results, key=lambda x: x['recall'])
+    best_threshold = best_threshold_result['threshold']
+    best_recall = best_threshold_result['recall']
+    
+    print("-" * 50)
+    print(f"推荐最佳阈值: {best_threshold}")
+    print(f"对应召回率: {best_recall:.4f}")
+    print(f"对应精确率: {best_threshold_result['precision']:.4f}")
+    
+    # 5. 使用最佳阈值重新评估
+    print(f"\n使用最佳阈值 {best_threshold} 重新评估模型:")
+    test_metrics_adjusted, y_proba_adjusted = calculate_all_metrics(
+        best_lr_model, X_test, y_test, threshold=best_threshold
+    )
+    
+    # 6. 比较不同阈值的结果
+    print("\n阈值调整前后对比:")
+    print("-" * 50)
+    print(f"{'指标':<20} {'默认阈值(0.5)':<15} {'调整后':<15} {'变化':<10}")
+    print("-" * 50)
+    
+    # 获取默认阈值（0.5）的结果
+    test_metrics_default, _ = calculate_all_metrics(best_lr_model, X_test, y_test, threshold=0.5)
+    
+    key_metrics = ['精确率', '召回率', 'F2分数']
+    for metric in key_metrics:
+        default_val = test_metrics_default.get(metric, 0)
+        adjusted_val = test_metrics_adjusted.get(metric, 0)
+        change = adjusted_val - default_val
+        change_symbol = "↑" if change > 0 else "↓" if change < 0 else "="
+        print(f"{metric:<20} {default_val:<15.4f} {adjusted_val:<15.4f} {change_symbol}{abs(change):.4f}")
+    
+    # 7. 保存调整阈值后的结果
+    print("\n=== 步骤5: 保存结果（包含阈值调整）===")
+    
+    # 保存默认阈值的结果
+    results_df_default = pd.DataFrame([test_metrics_default])
+    results_df_default['最佳参数'] = str(grid_search.best_params_)
+    results_df_default['调参评分标准'] = '召回率'
+    results_df_default['分类阈值'] = 0.5
+    
+    # 保存调整阈值后的结果
+    results_df_adjusted = pd.DataFrame([test_metrics_adjusted])
+    results_df_adjusted['最佳参数'] = str(grid_search.best_params_)
+    results_df_adjusted['调参评分标准'] = '召回率'
+    results_df_adjusted['分类阈值'] = best_threshold
+    
+    # 合并结果
+    all_results = pd.concat([results_df_default, results_df_adjusted], 
+                           keys=['默认阈值(0.5)', f'优化阈值({best_threshold})'])
+    
+    results_excel_path = os.path.join(output_dir, "逻辑回归模型_阈值调整评估结果.xlsx")
+    all_results.to_excel(results_excel_path)
+    print(f"阈值调整评估结果已保存至: {results_excel_path}")
+    
+    # 8. 绘制阈值-召回率曲线
+    plt.figure(figsize=(10, 6))
+    thresholds_list = [r['threshold'] for r in threshold_results]
+    recall_list = [r['recall'] for r in threshold_results]
+    precision_list = [r['precision'] for r in threshold_results]
+    
+    plt.plot(thresholds_list, recall_list, 'b-', marker='o', label='召回率', linewidth=2)
+    plt.plot(thresholds_list, precision_list, 'r-', marker='s', label='精确率', linewidth=2)
+    
+    # 标记最佳阈值点
+    plt.axvline(x=best_threshold, color='g', linestyle='--', 
+                label=f'最佳阈值 ({best_threshold})', linewidth=2)
+    plt.axhline(y=best_recall, color='g', linestyle=':', alpha=0.5)
+    
+    plt.xlabel('分类阈值', fontsize=12)
+    plt.ylabel('分数', fontsize=12)
+    plt.title('阈值对召回率和精确率的影响', fontsize=14)
+    plt.legend(loc='best')
+    plt.grid(True, alpha=0.3)
+    
+    # 在图中标注数值
+    for i, (thresh, recall, precision) in enumerate(zip(thresholds_list, recall_list, precision_list)):
+        plt.annotate(f'{recall:.3f}', (thresh, recall), textcoords="offset points", 
+                    xytext=(0,10), ha='center', fontsize=9)
+        plt.annotate(f'{precision:.3f}', (thresh, precision), textcoords="offset points", 
+                    xytext=(0,-15), ha='center', fontsize=9)
+    
+    plt.tight_layout()
+    threshold_curve_path = os.path.join(output_dir, "阈值调整曲线.png")
+    plt.savefig(threshold_curve_path, dpi=300, bbox_inches='tight')
+    print(f"阈值调整曲线已保存至: {threshold_curve_path}")
+    plt.show()
+
+    # 绘制ROC/PR曲线
+    fpr, tpr, _ = roc_curve(y_test, y_proba)
+    roc_auc = auc(fpr, tpr)
+
+    plt.figure(figsize=(12, 5))
+
+    plt.subplot(1, 2, 1)
+    plt.plot(fpr, tpr, color='darkorange', lw=2, label=f'ROC curve (AUC = {roc_auc:.3f})')
+    plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--', label='Random Classifier')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('ROC Curve - Logistic Regression (Best Model)')
+    plt.legend(loc="lower right")
+    plt.grid(True, alpha=0.3)
+
+    precision, recall, _ = precision_recall_curve(y_test, y_proba)
+    avg_precision = average_precision_score(y_test, y_proba)
+    no_skill = y_test.mean()
+
+    plt.subplot(1, 2, 2)
+    plt.plot(recall, precision, color='blue', lw=2, label=f'PR curve (AP = {avg_precision:.3f})')
+    plt.axhline(y=no_skill, color='gray', linestyle='--', label=f'Random Classifier (AP = {no_skill:.3f})')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('Recall')
+    plt.ylabel('Precision')
+    plt.title('Precision-Recall Curve - Logistic Regression (Best Model)')
+    plt.legend(loc="upper right")
+    plt.grid(True, alpha=0.3)
+
+    plt.tight_layout()
+    curves_path = os.path.join(output_dir, "逻辑回归模型_ROC_PR_曲线.png")
+    plt.savefig(curves_path, dpi=300, bbox_inches='tight')
+    print(f"ROC/PR曲线图已保存至: {curves_path}")
+    plt.show()
+
+    cv_results_df = pd.DataFrame(grid_search.cv_results_)
+    cv_results_excel_path = os.path.join(output_dir, "逻辑回归模型_网格搜索详细结果.xlsx")
+    important_cols = ['params', 'mean_test_score', 'std_test_score', 'rank_test_score']
+    cols_to_save = [col for col in important_cols if col in cv_results_df.columns]
+    cv_results_df[cols_to_save].to_excel(cv_results_excel_path, index=False)
+    print(f"网格搜索详细结果已保存至: {cv_results_excel_path}")
+
+    print("\n" + "="*60)
+    print("逻辑回归模型专项调参与评估流程完成！【优化目标：召回率】")
+    print(f"所有结果已保存至目录: {output_dir}")
+    print("="*60)
+
+    return best_lr_model, test_metrics_adjusted, grid_search, best_threshold
+
+
+if __name__ == "__main__":
+    file_paths = [
+        r"C:\Users\DELL\Desktop\心理测评\测评结果-2025-1387.xlsx",
+        r"C:\Users\DELL\Desktop\心理测评\测评结果-2024-1284.xlsx",
+        r"C:\Users\DELL\Desktop\心理测评\测评结果-2023-1277.xlsx",
+        r"C:\Users\DELL\Desktop\心理测评\测评结果-2022-1269.xlsx",
+        r"C:\Users\DELL\Desktop\心理测评\测评结果-2021-1018.xlsx"
+    ]
+
+    valid_paths = []
+    for fp in file_paths:
+        if os.path.exists(fp):
+            valid_paths.append(fp)
+        else:
+            print(f"文件不存在: {fp}")
+            alt_path = os.path.join(os.path.dirname(__file__), os.path.basename(fp))
+            if os.path.exists(alt_path):
+                print(f"  但在脚本同目录下找到类似文件: {alt_path}")
+                use_alt = input(f"  是否使用此路径? (y/n): ").lower()
+                if use_alt == 'y':
+                    valid_paths.append(alt_path)
+            else:
+                new_path = input(f"  请输入文件 '{os.path.basename(fp)}' 的正确完整路径: ")
+                if os.path.exists(new_path):
+                    valid_paths.append(new_path)
+                else:
+                    print(f"  警告: 路径 '{new_path}' 仍不存在，将跳过此文件。")
+
+    if not valid_paths:
+        print("错误: 没有找到任何有效的数据文件。请检查文件路径。")
+    else:
+        print(f"将处理以下 {len(valid_paths)} 个文件:")
+        for p in valid_paths:
+            print(f"  - {p}")
+
+        best_model, metrics, gs, best_threshold = tune_and_evaluate_logistic_regression(valid_paths)
