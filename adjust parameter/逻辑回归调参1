@@ -1,0 +1,309 @@
+import pandas as pd
+import numpy as np
+import os
+import warnings
+warnings.filterwarnings('ignore')
+
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.compose import ColumnTransformer
+from imblearn.pipeline import Pipeline
+
+from sklearn.model_selection import train_test_split, GridSearchCV, StratifiedKFold
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import (precision_score, recall_score, fbeta_score,
+                             average_precision_score, matthews_corrcoef,
+                             cohen_kappa_score, balanced_accuracy_score,
+                             confusion_matrix, roc_auc_score,
+                             precision_recall_curve, roc_curve, auc, f1_score,
+                             accuracy_score, make_scorer)
+
+from imblearn.over_sampling import SMOTENC
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+plt.rcParams['font.sans-serif'] = ['SimHei', 'DejaVu Sans']
+plt.rcParams['axes.unicode_minus'] = False
+plt.rcParams['figure.dpi'] = 150
+
+
+def calculate_all_metrics(model, X_test, y_test):
+    """
+    计算模型在测试集上的12个评估指标。
+    返回值: 包含所有指标的字典，以及预测概率y_proba。
+    """
+    y_pred = model.predict(X_test)
+    y_proba = model.predict_proba(X_test)[:, 1]  # 获取正类的预测概率
+
+    tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
+
+    metrics = {
+        "精确率": precision_score(y_test, y_pred, zero_division=0),
+        "召回率": recall_score(y_test, y_pred, zero_division=0),
+        "F2分数": fbeta_score(y_test, y_pred, beta=2, zero_division=0),
+        "AUC-PR": average_precision_score(y_test, y_proba),
+        "AUC-ROC": roc_auc_score(y_test, y_proba),
+        "马修斯相关系数": matthews_corrcoef(y_test, y_pred),
+        "科恩卡帕系数": cohen_kappa_score(y_test, y_pred),
+        "平衡准确率": balanced_accuracy_score(y_test, y_pred),
+        "几何均值": np.sqrt(recall_score(y_test, y_pred, zero_division=0) * (tn/(tn+fp) if (tn+fp)>0 else 0)),
+        "阴性预测值": tn/(tn+fn) if (tn+fn)>0 else 0,
+        "特异性": tn/(tn+fp) if (tn+fp)>0 else 0,
+        "诊断优势比": (tp*tn)/(fp*fn) if (fp*fn)>0 else np.nan,
+    }
+    return metrics, y_proba
+
+
+def tune_and_evaluate_logistic_regression(file_paths, output_dir=None):
+    print("="*60)
+    print("开始心理危机预测 - 逻辑回归模型专项调参（使用召回率调参）")
+    print("="*60)
+
+    # 1. 设置输出目录
+    if output_dir is None:
+        desktop = os.path.join(os.path.expanduser("~"), "Desktop")
+        output_dir = os.path.join(desktop, "逻辑回归调参")
+    os.makedirs(output_dir, exist_ok=True)
+    print(f"结果将保存至: {output_dir}")
+
+    # 2. 数据预处理
+    print("\n=== 步骤1: 数据预处理与划分 ===")
+
+    all_dfs = []
+    for fp in file_paths:
+        if os.path.exists(fp):
+            df = pd.read_excel(fp, sheet_name=None)
+            for sheet in ['严重心理危机', '一般心理问题', '潜在心理困扰', '无心理困扰']:
+                if sheet in df:
+                    all_dfs.append(df[sheet])
+        else:
+            print(f"警告: 文件不存在，已跳过 -> {fp}")
+
+    if not all_dfs:
+        print("错误: 未找到任何有效数据文件，流程终止。")
+        return
+
+    merged_df = pd.concat(all_dfs, ignore_index=True)
+    print(f"合并后总数据量: {merged_df.shape}")
+
+    # 清洗数据: 保留一致性得分 >= 2
+    cleaned_df = merged_df[merged_df['一致性得分'] >= 2].copy()
+    print(f"清洗后(一致性得分>=2)数据量: {cleaned_df.shape}")
+
+    # 创建目标变量
+    cleaned_df['有自杀意图'] = cleaned_df['可能问题'].apply(lambda x: 1 if '自杀意图' in str(x) else 0)
+    print(f"目标变量分布 - 有自杀意图: {cleaned_df['有自杀意图'].sum()}, 无: {len(cleaned_df)-cleaned_df['有自杀意图'].sum()}")
+
+    # 跳过指定列
+    skip_cols = ['学历层次','入学年份','出生日期','总分','家庭关系满意度',
+                 '学校及专业满意度','可能问题','测评等级','提交时间',
+                 '一致性得分','总用时(秒)','自杀意图(指标标准分)']
+    skip_cols.extend([col for col in cleaned_df.columns if "(指标总分)" in col])
+
+    # 对分类变量进行独热编码
+    cat_cols = ["性别", "民族", "生源地", "是否独生"]
+    encoder = OneHotEncoder(drop='first', sparse_output=False, handle_unknown='ignore')
+    encoded_features = encoder.fit_transform(cleaned_df[cat_cols])
+    feature_names_cat = encoder.get_feature_names_out(cat_cols)
+    encoded_df = pd.DataFrame(encoded_features, columns=feature_names_cat)
+
+    # 移除代表NaN的编码列
+    columns_to_drop = [col for col in encoded_df.columns if col.endswith("_nan")]
+    if columns_to_drop:
+        encoded_df = encoded_df.drop(columns=columns_to_drop)
+        feature_names_cat = [col for col in feature_names_cat if col not in columns_to_drop]
+
+    # 构建数值特征列
+    num_cols_for_model = [col for col in cleaned_df.columns
+                          if col not in skip_cols + cat_cols + ['有自杀意图', '自杀意图(指标标准分)']]
+
+    # 合并最终特征
+    X = pd.concat([cleaned_df[num_cols_for_model].reset_index(drop=True),
+                   encoded_df.reset_index(drop=True)], axis=1)
+    y = cleaned_df['有自杀意图'].values
+
+    print(f"最终特征维度: {X.shape[1]} 个特征")
+    print(f"数值特征数量: {len(num_cols_for_model)}, 分类特征数量: {len(feature_names_cat)}")
+    
+    # 记录分类特征索引
+    categorical_indices = [i for i, col in enumerate(X.columns) if col in feature_names_cat]
+    print(f"分类特征在特征矩阵中的索引: {categorical_indices[:5]} ...")
+
+    # 分层划分训练集和测试集
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.3, random_state=42, stratify=y
+    )
+    print(f"训练集: {X_train.shape[0]} 样本, 测试集: {X_test.shape[0]} 样本")
+    print(f"训练集中正类(有自杀意图)比例: {y_train.mean():.2%}")
+
+    # ========== 构建Pipeline（使用imblearn的Pipeline） ==========
+    print("\n=== 步骤2: 构建建模Pipeline ===")
+    
+    # 特征预处理：仅对数值特征标准化
+    preprocessor = ColumnTransformer(
+        transformers=[
+            ('num', StandardScaler(), num_cols_for_model),
+            ('cat', 'passthrough', feature_names_cat)
+        ]
+    )
+
+    # 完整Pipeline：标准化 → SMOTE-ENC → 逻辑回归
+    pipe_lr = Pipeline([
+        ('preprocessor', preprocessor),
+        ('smote', SMOTENC(categorical_features=categorical_indices, random_state=42, sampling_strategy='auto')),
+        ('model', LogisticRegression(max_iter=2000, random_state=50))
+    ])
+    print("✅ Pipeline构建完成（使用imblearn.Pipeline，兼容SMOTENC）")
+
+    # 调参网格
+    param_grid_lr =[
+        {'model__solver': ['saga'],
+        'model__penalty': ['elasticnet', 'l2', 'l1'],
+        'model__C': [0.001, 0.01, 0.1, 1, 10, 100, 1000],
+        'model__l1_ratio': [0.1, 0.3, 0.5, 0.7, 0.9],
+        'model__class_weight': [None, 'balanced'],
+        'model__max_iter': [1000, 2000]},
+
+        {'model__solver': ['liblinear'],
+        'model__penalty': ['l1', 'l2'],
+        'model__C': [0.001, 0.01, 0.1, 1, 10, 100, 1000],
+        'model__class_weight': [None, 'balanced'],
+        'model__max_iter': [1000, 2000]},
+
+        {'model__solver': ['lbfgs'],
+        'model__penalty': ['l2'],
+        'model__C': [0.001, 0.01, 0.1, 1, 10, 100, 1000],
+        'model__class_weight': [None, 'balanced'],
+        'model__max_iter': [1000, 2000]}
+        ]
+
+    print("\n=== 步骤3: 开始网格搜索调参（优化目标：召回率） ===")
+    cv_strategy = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+
+    grid_search = GridSearchCV(
+        estimator=pipe_lr,
+        param_grid=param_grid_lr,
+        scoring='recall',
+        cv=cv_strategy,
+        verbose=1,
+        n_jobs=-1
+    )
+
+    # 训练
+    grid_search.fit(X_train, y_train)
+
+    print("调参完成！")
+    print(f"最佳参数组合: {grid_search.best_params_}")
+    print(f"最佳交叉验证 召回率: {grid_search.best_score_:.4f}")
+
+    # 获取最佳模型
+    best_lr_model = grid_search.best_estimator_
+
+    # 5. 在测试集上评估
+    print("\n=== 步骤4: 在独立测试集上评估最佳逻辑回归模型 ===")
+    test_metrics, y_proba = calculate_all_metrics(best_lr_model, X_test, y_test)
+
+    print("\n逻辑回归模型在测试集上的性能指标:")
+    print("-" * 40)
+    for metric_name, value in test_metrics.items():
+        print(f"{metric_name:30s}: {value:.4f}")
+    print("-" * 40)
+
+    # 6. 保存结果
+    print("\n=== 步骤5: 保存结果 ===")
+
+    results_df = pd.DataFrame([test_metrics])
+    results_df['最佳参数'] = str(grid_search.best_params_)
+    results_df['调参评分标准'] = '召回率'  # 修改说明
+    results_excel_path = os.path.join(output_dir, "逻辑回归模型_召回率调参后评估结果.xlsx")
+    results_df.to_excel(results_excel_path, index=False)
+    print(f"评估指标已保存至: {results_excel_path}")
+
+    # 绘制ROC/PR曲线
+    fpr, tpr, _ = roc_curve(y_test, y_proba)
+    roc_auc = auc(fpr, tpr)
+
+    plt.figure(figsize=(12, 5))
+
+    plt.subplot(1, 2, 1)
+    plt.plot(fpr, tpr, color='darkorange', lw=2, label=f'ROC curve (AUC = {roc_auc:.3f})')
+    plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--', label='Random Classifier')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('ROC Curve - Logistic Regression (Best Model)')
+    plt.legend(loc="lower right")
+    plt.grid(True, alpha=0.3)
+
+    precision, recall, _ = precision_recall_curve(y_test, y_proba)
+    avg_precision = average_precision_score(y_test, y_proba)
+    no_skill = y_test.mean()
+
+    plt.subplot(1, 2, 2)
+    plt.plot(recall, precision, color='blue', lw=2, label=f'PR curve (AP = {avg_precision:.3f})')
+    plt.axhline(y=no_skill, color='gray', linestyle='--', label=f'Random Classifier (AP = {no_skill:.3f})')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('Recall')
+    plt.ylabel('Precision')
+    plt.title('Precision-Recall Curve - Logistic Regression (Best Model)')
+    plt.legend(loc="upper right")
+    plt.grid(True, alpha=0.3)
+
+    plt.tight_layout()
+    curves_path = os.path.join(output_dir, "逻辑回归模型_ROC_PR_曲线.png")
+    plt.savefig(curves_path, dpi=300, bbox_inches='tight')
+    print(f"ROC/PR曲线图已保存至: {curves_path}")
+    plt.show()
+
+    cv_results_df = pd.DataFrame(grid_search.cv_results_)
+    cv_results_excel_path = os.path.join(output_dir, "逻辑回归模型_网格搜索详细结果.xlsx")
+    important_cols = ['params', 'mean_test_score', 'std_test_score', 'rank_test_score']
+    cols_to_save = [col for col in important_cols if col in cv_results_df.columns]
+    cv_results_df[cols_to_save].to_excel(cv_results_excel_path, index=False)
+    print(f"网格搜索详细结果已保存至: {cv_results_excel_path}")
+
+    print("\n" + "="*60)
+    print("逻辑回归模型专项调参与评估流程完成！【优化目标：召回率】")
+    print(f"所有结果已保存至目录: {output_dir}")
+    print("="*60)
+
+    return best_lr_model, test_metrics, grid_search
+
+
+if __name__ == "__main__":
+    file_paths = [
+        r"C:\Users\DELL\Desktop\心理测评\测评结果-2025-1387.xlsx",
+        r"C:\Users\DELL\Desktop\心理测评\测评结果-2024-1284.xlsx",
+        r"C:\Users\DELL\Desktop\心理测评\测评结果-2023-1277.xlsx",
+        r"C:\Users\DELL\Desktop\心理测评\测评结果-2022-1269.xlsx",
+        r"C:\Users\DELL\Desktop\心理测评\测评结果-2021-1018.xlsx"
+    ]
+
+    valid_paths = []
+    for fp in file_paths:
+        if os.path.exists(fp):
+            valid_paths.append(fp)
+        else:
+            print(f"文件不存在: {fp}")
+            alt_path = os.path.join(os.path.dirname(__file__), os.path.basename(fp))
+            if os.path.exists(alt_path):
+                print(f"  但在脚本同目录下找到类似文件: {alt_path}")
+                use_alt = input(f"  是否使用此路径? (y/n): ").lower()
+                if use_alt == 'y':
+                    valid_paths.append(alt_path)
+            else:
+                new_path = input(f"  请输入文件 '{os.path.basename(fp)}' 的正确完整路径: ")
+                if os.path.exists(new_path):
+                    valid_paths.append(new_path)
+                else:
+                    print(f"  警告: 路径 '{new_path}' 仍不存在，将跳过此文件。")
+
+    if not valid_paths:
+        print("错误: 没有找到任何有效的数据文件。请检查文件路径。")
+    else:
+        print(f"将处理以下 {len(valid_paths)} 个文件:")
+        for p in valid_paths:
+            print(f"  - {p}")
+
+        best_model, metrics, gs = tune_and_evaluate_logistic_regression(valid_paths)
