@@ -1,9 +1,20 @@
-scikit-learn==1.8.0
-xgboost==3.2.0
-lightgbm==4.6.0
-imbalanced-learn==0.14.1
-shap==0.50.0
-numpy==2.3.5
-pandas==3.0.0
-matplotlib==3.10.0
-seaborn==0.13.2
+# 核心数值与数据处理
+numpy>=2.3.5
+pandas>=3.0.0
+scipy>=1.15.3
+
+# 机器学习建模
+scikit-learn>=1.9.0
+imbalanced-learn>=0.14.1
+xgboost>=3.2.0
+lightgbm>=4.6.0
+
+# 可解释性分析
+shap>=0.50.0
+
+# 可视化
+matplotlib>=3.10.0
+seaborn>=0.13.2
+
+# Excel原始数据读取
+openpyxl>=3.1.5
