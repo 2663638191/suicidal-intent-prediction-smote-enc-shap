@@ -1,0 +1,252 @@
+{
+  "snapshot": "AJP_source_20261029",
+  "hash": "SHA-256",
+  "scope": "Source code and input definitions; excludes this inventory itself",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 141,
+      "sha256": "ae35c6f7eaad41ca8956fdae0c5e935c69dca52de53819bd9364b10a2cc22473"
+    },
+    {
+      "path": ".github/workflows/validate.yml",
+      "bytes": 417,
+      "sha256": "2300ae6b65a3cc07f470e98373e1c62c074be02ab129fc7a6f7e1f5a39028c1f"
+    },
+    {
+      "path": ".gitignore",
+      "bytes": 293,
+      "sha256": "edf5d990976090151ec711d8fc30bdc921754ad7fed4e0b7dab722d24886d752"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "bytes": 305,
+      "sha256": "c9bd2c900a23f59403a8cf8c95d2681c8357b7b700c53e5d8bee21ebcb5ba556"
+    },
+    {
+      "path": "CITATION.cff",
+      "bytes": 739,
+      "sha256": "2f7efe6c28b33f7d717fe23ddd28fa2f2b2d12c4a924ad3c9efbab3f7428fc4b"
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "bytes": 496,
+      "sha256": "818ec0085fcaff90f57959e1bd984ba68f839886a21b16ba78df2bc85f059e76"
+    },
+    {
+      "path": "LICENSE",
+      "bytes": 1084,
+      "sha256": "c77dc412be8f0aed2b8f0932949b17453e249de68c2df11ad83cac734d89f283"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2652,
+      "sha256": "f987aee9daad733eabf66675f0fd94e129e2c1c67550557f59fc4f3c535faf02"
+    },
+    {
+      "path": "README_zh-CN.md",
+      "bytes": 2357,
+      "sha256": "897051a06ea43b832e19f6923440979893b895405fd0dd95f70f9b98b40feea1"
+    },
+    {
+      "path": "code/en/README.md",
+      "bytes": 1961,
+      "sha256": "5d0e36cdb1177375f46f96c10b099bcb0a5223ace1898cc32bf5f04ba1aaeb30"
+    },
+    {
+      "path": "code/en/engine/图表输出.py",
+      "bytes": 32389,
+      "sha256": "8ae77055bbaddaef1ee9a40baf43295d7c490a313de249ed635fa8ec94c11d7d"
+    },
+    {
+      "path": "code/en/engine/字段核对.py",
+      "bytes": 6028,
+      "sha256": "233038f5af3abd602ca3b82040781cda0744ecab665ceb52e628f45302fd2701"
+    },
+    {
+      "path": "code/en/engine/完整实验.py",
+      "bytes": 45438,
+      "sha256": "c5e4a822ef7dc5e4a363bf54bcfd60de2e5734a3ac8d39bc6627d5efaf4fc4c1"
+    },
+    {
+      "path": "code/en/engine/算法与统计.py",
+      "bytes": 23614,
+      "sha256": "24a92fd0c663ef553e567161f215aa10ebda33254885f8cffa0887a95cb79972"
+    },
+    {
+      "path": "code/en/engine/算法自检.py",
+      "bytes": 7864,
+      "sha256": "a65526d1c508d1613087ad9067eee94c4ed4385c5817bcbc8ed151558d6539ab"
+    },
+    {
+      "path": "code/en/engine/输出复核.py",
+      "bytes": 41121,
+      "sha256": "5c9ca3e6429bf64a54de56d3f9e811cbefef8db7ca09e0b814e2546bcb711f04"
+    },
+    {
+      "path": "code/en/english_figures.py",
+      "bytes": 16131,
+      "sha256": "e26c9b764365420579f6995acf824a275aaf79c138436c45f77faed73e5905df"
+    },
+    {
+      "path": "code/en/export_workbook.mjs",
+      "bytes": 4673,
+      "sha256": "0080abb7a9080265cf443a430161d0eea7365aa541669d36ca09150b41abc842"
+    },
+    {
+      "path": "code/en/export_workbook.py",
+      "bytes": 5743,
+      "sha256": "9a2eab1f19c38b22d7defcd18d2b61b6ae71e7e84f23943f409e796cae55cfb0"
+    },
+    {
+      "path": "code/en/localisation.py",
+      "bytes": 12876,
+      "sha256": "94686d99768062976d9319e0fdb3fa8e3c976133149d6ea47162271e7b09eccd"
+    },
+    {
+      "path": "code/en/requirements.txt",
+      "bytes": 268,
+      "sha256": "cd65d455feae12dde8a28f3658e0eb9befc4dac7a5285d4337e40c537c2b191f"
+    },
+    {
+      "path": "code/en/resources/frozen_glossary.json",
+      "bytes": 18156,
+      "sha256": "3644b0917bcb3275c77b8270d2bb82720ceb1380c35e235e95df4ae4d1fa3700"
+    },
+    {
+      "path": "code/en/run_English.ps1",
+      "bytes": 987,
+      "sha256": "226c0df02196f757a841df805c9a80374f7bf54e56b2323110d8dfd4433029a0"
+    },
+    {
+      "path": "code/en/run_analysis.py",
+      "bytes": 12544,
+      "sha256": "fb793f5f8b82b491b235b6a0c229b4d74a8aba57e6c8a8db615bb8eda8cb9dd2"
+    },
+    {
+      "path": "code/en/validate_english_results.py",
+      "bytes": 6011,
+      "sha256": "40428d87342ffef66c0529b71be95e1b2545df953f2fef9b614dd98b66b846dd"
+    },
+    {
+      "path": "code/zh/交付整理.py",
+      "bytes": 2093,
+      "sha256": "5268715e5b4b4c0336a4db529ad1144ec0c06e1ed970f5cb7bd6e8950bb93897"
+    },
+    {
+      "path": "code/zh/依赖版本.txt",
+      "bytes": 268,
+      "sha256": "cd65d455feae12dde8a28f3658e0eb9befc4dac7a5285d4337e40c537c2b191f"
+    },
+    {
+      "path": "code/zh/图表输出.py",
+      "bytes": 32389,
+      "sha256": "8ae77055bbaddaef1ee9a40baf43295d7c490a313de249ed635fa8ec94c11d7d"
+    },
+    {
+      "path": "code/zh/字段核对.py",
+      "bytes": 6028,
+      "sha256": "d48f41734f39a0ca86877f4a3a060cc550e4dc288b75a66bc27bf6cc9e37e6c6"
+    },
+    {
+      "path": "code/zh/安装依赖.ps1",
+      "bytes": 473,
+      "sha256": "bca7dbdb601320a25f36d41a4e78cc9c4cf8ef471dbbeb5e1def568a6308ae10"
+    },
+    {
+      "path": "code/zh/完整实验.py",
+      "bytes": 45438,
+      "sha256": "5082f97b160e5d96c0a5795ac65186689250d46f85d8c54029ded49aeb4894e8"
+    },
+    {
+      "path": "code/zh/工作簿导出.mjs",
+      "bytes": 4556,
+      "sha256": "5d8018e7c4e9bc406af883d6750afc14806ffb76b0086ef0ed00446a30c9f8d3"
+    },
+    {
+      "path": "code/zh/算法与统计.py",
+      "bytes": 23614,
+      "sha256": "24a92fd0c663ef553e567161f215aa10ebda33254885f8cffa0887a95cb79972"
+    },
+    {
+      "path": "code/zh/算法自检.py",
+      "bytes": 7864,
+      "sha256": "a65526d1c508d1613087ad9067eee94c4ed4385c5817bcbc8ed151558d6539ab"
+    },
+    {
+      "path": "code/zh/输出复核.py",
+      "bytes": 41121,
+      "sha256": "5c9ca3e6429bf64a54de56d3f9e811cbefef8db7ca09e0b814e2546bcb711f04"
+    },
+    {
+      "path": "code/zh/运行实验.ps1",
+      "bytes": 1750,
+      "sha256": "455fc327e9480a378fda8ff32d6a772e1dca8773a8ad19316a06319cfaf09957"
+    },
+    {
+      "path": "code/zh/运行说明.md",
+      "bytes": 1207,
+      "sha256": "be82a87e249da8704d9958ea1df3779f704799fb860fce5543144ddd17af0935"
+    },
+    {
+      "path": "code/zh/重新出图.py",
+      "bytes": 1245,
+      "sha256": "9df5d226adcd15aacff41dba11b8a2524d69609967edfd02d3d5b6f4a8c78926"
+    },
+    {
+      "path": "data/schema/input_headers_zh.csv",
+      "bytes": 376,
+      "sha256": "df4ed892b0c0b09507c28a9101f268b4a777d5c89d18f34720bf31ee00d4c384"
+    },
+    {
+      "path": "data/schema/input_schema.json",
+      "bytes": 1142,
+      "sha256": "27101a0f7829fcccc8c081b0166926acaef085cb4a56ca10f7c3998da85d2790"
+    },
+    {
+      "path": "data/schema/source_field_mapping.csv",
+      "bytes": 2092,
+      "sha256": "3f3e3f32d464e6265ef3eea4a66b801216d68c83556cb7fd6c77fd5e8df25f8f"
+    },
+    {
+      "path": "data/schema/terminology_en_zh.csv",
+      "bytes": 2790,
+      "sha256": "65d4a327cd6275a86a15ce7c4330f518a330c296b3148ca97dc296a3830287d1"
+    },
+    {
+      "path": "data/schema/variable_dictionary_en.csv",
+      "bytes": 3179,
+      "sha256": "6e2417e36e41998ecf45960220cb7d3940908babd606da64fe803d93c58ec24c"
+    },
+    {
+      "path": "docs/data.md",
+      "bytes": 1510,
+      "sha256": "007c3924e97a3d260d44833971e9f8fb87fe841e89a2c5a82ab06458dddce1c5"
+    },
+    {
+      "path": "docs/reproducibility.md",
+      "bytes": 1813,
+      "sha256": "663fe021ddcc817da098b07c7464b0cba52f29c893ccf065579f05691002ab2d"
+    },
+    {
+      "path": "requirements.txt",
+      "bytes": 268,
+      "sha256": "cd65d455feae12dde8a28f3658e0eb9befc4dac7a5285d4337e40c537c2b191f"
+    },
+    {
+      "path": "scripts/update_manifest.py",
+      "bytes": 1968,
+      "sha256": "5cd5a8b0e4e6cf944deaebc35a6762242e295f0dcbfd7b42b98e2a6e6bcf39f8"
+    },
+    {
+      "path": "tests/test_portable_interfaces.py",
+      "bytes": 9614,
+      "sha256": "f384c7ab25f9c6abc21fa49439119c1279101ce98b0139b302d38f6fc00c9823"
+    },
+    {
+      "path": "tests/test_public_snapshot.py",
+      "bytes": 6522,
+      "sha256": "23c1a7d443e288b95e92ff0368d11daf725eb7a2b089abe2435747557d68718f"
+    }
+  ]
+}

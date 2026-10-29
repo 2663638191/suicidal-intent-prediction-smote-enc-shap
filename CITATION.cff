@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use this research software, please cite this repository."
+type: software
+title: "Interpretable machine learning for suicidal ideation screening and feature analysis in university students"
+authors:
+  - family-names: He
+    given-names: Liu
+    orcid: "https://orcid.org/0009-0003-3799-6753"
+  - family-names: Yin
+    given-names: Zhi
+    orcid: "https://orcid.org/0009-0006-1680-9041"
+repository-code: "https://github.com/2663638191/suicidal-intent-prediction-smote-enc-shap"
+url: "https://github.com/2663638191/suicidal-intent-prediction-smote-enc-shap"
+license: MIT
+keywords:
+  - suicidal ideation
+  - university screening
+  - interpretable machine learning
+  - SMOTE-ENC
+  - SHAP

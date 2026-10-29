@@ -1,0 +1,3 @@
+# Preserve the exact repository bytes on every platform.
+# Frozen artefact and source SHA-256 checks require unchanged line endings.
+* -text

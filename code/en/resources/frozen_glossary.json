@@ -1,0 +1,643 @@
+{
+  "schema_version": 2,
+  "scope": "Input-field and British English display-label dictionary; no observed sample summaries.",
+  "english_style": "British English; preserve API identifiers.",
+  "variables": [
+    {
+      "position": 1,
+      "role": "predictor",
+      "source_header_zh": "幻觉、妄想症状",
+      "analysis_name_zh": "幻觉妄想",
+      "label_en": "Hallucinatory and delusional symptoms",
+      "proposed_code_key_en": "hallucinatory_delusional_symptoms",
+      "type": "continuous",
+      "unit": "System-exported standard score (unitless)"
+    },
+    {
+      "position": 2,
+      "role": "predictor",
+      "source_header_zh": "焦虑",
+      "analysis_name_zh": "焦虑",
+      "label_en": "Anxiety",
+      "proposed_code_key_en": "anxiety",
+      "type": "continuous",
+      "unit": "System-exported standard score (unitless)"
+    },
+    {
+      "position": 3,
+      "role": "predictor",
+      "source_header_zh": "抑郁",
+      "analysis_name_zh": "抑郁",
+      "label_en": "Depression",
+      "proposed_code_key_en": "depression",
+      "type": "continuous",
+      "unit": "System-exported standard score (unitless)"
+    },
+    {
+      "position": 4,
+      "role": "predictor",
+      "source_header_zh": "偏执",
+      "analysis_name_zh": "偏执",
+      "label_en": "Paranoid ideation",
+      "proposed_code_key_en": "paranoid_ideation",
+      "type": "continuous",
+      "unit": "System-exported standard score (unitless)"
+    },
+    {
+      "position": 5,
+      "role": "predictor",
+      "source_header_zh": "自卑",
+      "analysis_name_zh": "自卑",
+      "label_en": "Feelings of inferiority",
+      "proposed_code_key_en": "feelings_of_inferiority",
+      "type": "continuous",
+      "unit": "System-exported standard score (unitless)"
+    },
+    {
+      "position": 6,
+      "role": "predictor",
+      "source_header_zh": "敏感",
+      "analysis_name_zh": "敏感",
+      "label_en": "Interpersonal sensitivity",
+      "proposed_code_key_en": "interpersonal_sensitivity",
+      "type": "continuous",
+      "unit": "System-exported standard score (unitless)"
+    },
+    {
+      "position": 7,
+      "role": "predictor",
+      "source_header_zh": "社交恐惧",
+      "analysis_name_zh": "社交恐惧",
+      "label_en": "Social phobia symptoms",
+      "proposed_code_key_en": "social_phobia_symptoms",
+      "type": "continuous",
+      "unit": "System-exported standard score (unitless)"
+    },
+    {
+      "position": 8,
+      "role": "predictor",
+      "source_header_zh": "躯体化",
+      "analysis_name_zh": "躯体化",
+      "label_en": "Somatisation",
+      "proposed_code_key_en": "somatisation",
+      "type": "continuous",
+      "unit": "System-exported standard score (unitless)"
+    },
+    {
+      "position": 9,
+      "role": "predictor",
+      "source_header_zh": "依赖",
+      "analysis_name_zh": "依赖",
+      "label_en": "Dependency",
+      "proposed_code_key_en": "dependency",
+      "type": "continuous",
+      "unit": "System-exported standard score (unitless)"
+    },
+    {
+      "position": 10,
+      "role": "predictor",
+      "source_header_zh": "敌对攻击",
+      "analysis_name_zh": "敌对攻击",
+      "label_en": "Hostility and aggression",
+      "proposed_code_key_en": "hostility_and_aggression",
+      "type": "continuous",
+      "unit": "System-exported standard score (unitless)"
+    },
+    {
+      "position": 11,
+      "role": "predictor",
+      "source_header_zh": "冲动",
+      "analysis_name_zh": "冲动",
+      "label_en": "Impulsivity",
+      "proposed_code_key_en": "impulsivity",
+      "type": "continuous",
+      "unit": "System-exported standard score (unitless)"
+    },
+    {
+      "position": 12,
+      "role": "predictor",
+      "source_header_zh": "强迫",
+      "analysis_name_zh": "强迫",
+      "label_en": "Obsessive-compulsive symptoms",
+      "proposed_code_key_en": "obsessive_compulsive_symptoms",
+      "type": "continuous",
+      "unit": "System-exported standard score (unitless)"
+    },
+    {
+      "position": 13,
+      "role": "predictor",
+      "source_header_zh": "网络成瘾",
+      "analysis_name_zh": "网络成瘾",
+      "label_en": "Internet addiction",
+      "proposed_code_key_en": "internet_addiction",
+      "type": "continuous",
+      "unit": "System-exported standard score (unitless)"
+    },
+    {
+      "position": 14,
+      "role": "predictor",
+      "source_header_zh": "自伤行为",
+      "analysis_name_zh": "自伤行为",
+      "label_en": "Self-injurious behaviour",
+      "proposed_code_key_en": "self_injurious_behaviour",
+      "type": "continuous",
+      "unit": "System-exported standard score (unitless)"
+    },
+    {
+      "position": 15,
+      "role": "predictor",
+      "source_header_zh": "进食问题",
+      "analysis_name_zh": "进食问题",
+      "label_en": "Eating problems",
+      "proposed_code_key_en": "eating_problems",
+      "type": "continuous",
+      "unit": "System-exported standard score (unitless)"
+    },
+    {
+      "position": 16,
+      "role": "predictor",
+      "source_header_zh": "睡眠困扰",
+      "analysis_name_zh": "睡眠困扰",
+      "label_en": "Sleep difficulties",
+      "proposed_code_key_en": "sleep_difficulties",
+      "type": "continuous",
+      "unit": "System-exported standard score (unitless)"
+    },
+    {
+      "position": 17,
+      "role": "predictor",
+      "source_header_zh": "学校适应困难",
+      "analysis_name_zh": "学校适应困难",
+      "label_en": "University adjustment difficulties",
+      "proposed_code_key_en": "university_adjustment_difficulties",
+      "type": "continuous",
+      "unit": "System-exported standard score (unitless)"
+    },
+    {
+      "position": 18,
+      "role": "predictor",
+      "source_header_zh": "人际关系困扰",
+      "analysis_name_zh": "人际关系困扰",
+      "label_en": "Interpersonal relationship difficulties",
+      "proposed_code_key_en": "interpersonal_relationship_difficulties",
+      "type": "continuous",
+      "unit": "System-exported standard score (unitless)"
+    },
+    {
+      "position": 19,
+      "role": "predictor",
+      "source_header_zh": "学业压力",
+      "analysis_name_zh": "学业压力",
+      "label_en": "Academic stress",
+      "proposed_code_key_en": "academic_stress",
+      "type": "continuous",
+      "unit": "System-exported standard score (unitless)"
+    },
+    {
+      "position": 20,
+      "role": "predictor",
+      "source_header_zh": "就业压力",
+      "analysis_name_zh": "就业问题",
+      "label_en": "Employment-related stress",
+      "proposed_code_key_en": "employment_related_stress",
+      "type": "continuous",
+      "unit": "System-exported standard score (unitless)"
+    },
+    {
+      "position": 21,
+      "role": "predictor",
+      "source_header_zh": "恋爱困扰",
+      "analysis_name_zh": "恋爱困扰",
+      "label_en": "Romantic relationship difficulties",
+      "proposed_code_key_en": "romantic_relationship_difficulties",
+      "type": "continuous",
+      "unit": "System-exported standard score (unitless)"
+    },
+    {
+      "position": 22,
+      "role": "predictor",
+      "source_header_zh": "性别",
+      "analysis_name_zh": "性别",
+      "label_en": "Recorded sex",
+      "proposed_code_key_en": "recorded_sex",
+      "type": "nominal categorical",
+      "unit": "Category (one-hot encoded within the model pipeline)",
+      "category_mapping": [
+        {
+          "source_zh": "男",
+          "label_en": "Male"
+        },
+        {
+          "source_zh": "女",
+          "label_en": "Female"
+        }
+      ]
+    },
+    {
+      "position": 23,
+      "role": "predictor",
+      "source_header_zh": "民族",
+      "analysis_name_zh": "民族",
+      "label_en": "Ethnic group",
+      "proposed_code_key_en": "ethnic_group",
+      "type": "nominal categorical",
+      "unit": "Category (one-hot encoded within the model pipeline)",
+      "category_mapping": [
+        {
+          "source_zh": "汉族",
+          "label_en": "Han Chinese"
+        },
+        {
+          "source_zh": "少数民族",
+          "label_en": "Ethnic minority"
+        },
+        {
+          "source_zh": "未知",
+          "label_en": "Unknown"
+        },
+        {
+          "source_zh": "外籍",
+          "label_en": "Foreign nationality"
+        }
+      ]
+    },
+    {
+      "position": 24,
+      "role": "predictor",
+      "source_header_zh": "生源地",
+      "analysis_name_zh": "生源地",
+      "label_en": "Area of origin",
+      "proposed_code_key_en": "area_of_origin",
+      "type": "nominal categorical",
+      "unit": "Category (one-hot encoded within the model pipeline)",
+      "category_mapping": [
+        {
+          "source_zh": "农村",
+          "label_en": "Rural area"
+        },
+        {
+          "source_zh": "小城镇",
+          "label_en": "Small town"
+        },
+        {
+          "source_zh": "中小城市",
+          "label_en": "Small or medium-sized city"
+        },
+        {
+          "source_zh": "大城市",
+          "label_en": "Large city"
+        }
+      ]
+    },
+    {
+      "position": 25,
+      "role": "predictor",
+      "source_header_zh": "是否独生",
+      "analysis_name_zh": "是否独生",
+      "label_en": "Only-child status",
+      "proposed_code_key_en": "only_child_status",
+      "type": "nominal categorical",
+      "unit": "Category (one-hot encoded within the model pipeline)",
+      "category_mapping": [
+        {
+          "source_zh": "否",
+          "label_en": "No"
+        },
+        {
+          "source_zh": "是",
+          "label_en": "Yes"
+        },
+        {
+          "source_zh": "未知",
+          "label_en": "Unknown"
+        }
+      ]
+    }
+  ],
+  "outcome": {
+    "role": "outcome",
+    "analysis_name_zh": "标签",
+    "label_en": "System suicidal-ideation screening label",
+    "short_label_en": "System-flagged suicidal ideation",
+    "proposed_code_key_en": "system_suicidal_ideation_label",
+    "type": "binary integer",
+    "unit": "0/1",
+    "source_field_zh": "建议关注方向",
+    "source_field_en": "System-recommended areas of concern",
+    "extraction_rule": "After NFKC normalisation and trimming, assign 1 if the original system-recommended areas-of-concern text contains 自杀意念; otherwise assign 0. A blank in an existing valid field is a valid no-flag record, whereas a missing required field is an input error.",
+    "levels": [
+      {
+        "value": 1,
+        "label_en": "System positive",
+        "definition": "System text contains 自杀意念"
+      },
+      {
+        "value": 0,
+        "label_en": "System negative",
+        "definition": "System text does not contain 自杀意念"
+      }
+    ]
+  },
+  "terms": [
+    {
+      "zh": "中国大学生心理健康筛查量表",
+      "en": "Chinese College Students’ Mental Health Screening Scale",
+      "abbreviation": "CCSMHSS"
+    },
+    {
+      "zh": "测评记录",
+      "en": "Screening record",
+      "abbreviation": null
+    },
+    {
+      "zh": "高校新生",
+      "en": "University entrants",
+      "abbreviation": null
+    },
+    {
+      "zh": "未采样",
+      "en": "No resampling",
+      "abbreviation": null
+    },
+    {
+      "zh": "SMOTE-ENC",
+      "en": "SMOTE-ENC",
+      "abbreviation": null
+    },
+    {
+      "zh": "逻辑回归",
+      "en": "Logistic regression",
+      "abbreviation": "LR"
+    },
+    {
+      "zh": "决策树",
+      "en": "Decision tree",
+      "abbreviation": "DT"
+    },
+    {
+      "zh": "随机森林",
+      "en": "Random forest",
+      "abbreviation": "RF"
+    },
+    {
+      "zh": "极端随机树",
+      "en": "Extremely randomised trees",
+      "abbreviation": "ET"
+    },
+    {
+      "zh": "XGBoost",
+      "en": "XGBoost",
+      "abbreviation": "XGB"
+    },
+    {
+      "zh": "LightGBM",
+      "en": "LightGBM",
+      "abbreviation": "LGBM"
+    },
+    {
+      "zh": "开发验证集",
+      "en": "Development validation set",
+      "abbreviation": null
+    },
+    {
+      "zh": "最终测试集",
+      "en": "Final test set",
+      "abbreviation": null
+    },
+    {
+      "zh": "五折分层交叉验证",
+      "en": "Five-fold stratified cross-validation",
+      "abbreviation": null
+    },
+    {
+      "zh": "Sigmoid校准",
+      "en": "Sigmoid calibration",
+      "abbreviation": null
+    },
+    {
+      "zh": "固定阈值",
+      "en": "Frozen classification threshold",
+      "abbreviation": null
+    },
+    {
+      "zh": "召回率/敏感度",
+      "en": "Sensitivity (recall)",
+      "abbreviation": null
+    },
+    {
+      "zh": "特异度",
+      "en": "Specificity",
+      "abbreviation": null
+    },
+    {
+      "zh": "平衡准确率",
+      "en": "Balanced accuracy",
+      "abbreviation": null
+    },
+    {
+      "zh": "ROC-AUC",
+      "en": "Area under the receiver operating characteristic curve",
+      "abbreviation": "ROC-AUC"
+    },
+    {
+      "zh": "平均精确率AP",
+      "en": "Average precision",
+      "abbreviation": "AP"
+    },
+    {
+      "zh": "精确率/阳性预测值",
+      "en": "Positive predictive value",
+      "abbreviation": "PPV"
+    },
+    {
+      "zh": "阴性预测值",
+      "en": "Negative predictive value",
+      "abbreviation": "NPV"
+    },
+    {
+      "zh": "Brier分数",
+      "en": "Brier score",
+      "abbreviation": null
+    },
+    {
+      "zh": "校准截距",
+      "en": "Calibration intercept",
+      "abbreviation": null
+    },
+    {
+      "zh": "校准斜率",
+      "en": "Calibration slope",
+      "abbreviation": null
+    },
+    {
+      "zh": "预测阳性比例",
+      "en": "Proportion flagged for review",
+      "abbreviation": null
+    },
+    {
+      "zh": "每千条记录复核数",
+      "en": "Records flagged for review per 1,000 records",
+      "abbreviation": null
+    },
+    {
+      "zh": "每千条记录漏识标签阳性数",
+      "en": "Missed system-positive records per 1,000 records",
+      "abbreviation": null
+    },
+    {
+      "zh": "每识别一例标签阳性的复核数",
+      "en": "Records requiring review per system-positive record identified",
+      "abbreviation": null
+    },
+    {
+      "zh": "阳性富集倍数",
+      "en": "Enrichment of system-positive records",
+      "abbreviation": null
+    },
+    {
+      "zh": "模型阳性/系统阴性记录",
+      "en": "Model-positive, system-negative records",
+      "abbreviation": null
+    },
+    {
+      "zh": "复核负担",
+      "en": "Review workload",
+      "abbreviation": null
+    },
+    {
+      "zh": "专业复核",
+      "en": "Professional review",
+      "abbreviation": null
+    },
+    {
+      "zh": "SHAP归因",
+      "en": "SHAP attribution",
+      "abbreviation": "SHAP"
+    },
+    {
+      "zh": "校准后log-odds",
+      "en": "Calibrated log-odds",
+      "abbreviation": null
+    },
+    {
+      "zh": "特征取值",
+      "en": "Feature value",
+      "abbreviation": null
+    },
+    {
+      "zh": "SHAP贡献值",
+      "en": "SHAP value",
+      "abbreviation": null
+    },
+    {
+      "zh": "平均绝对SHAP值",
+      "en": "Mean absolute SHAP value",
+      "abbreviation": null
+    },
+    {
+      "zh": "SHAP蜂群图",
+      "en": "SHAP beeswarm plot",
+      "abbreviation": null
+    },
+    {
+      "zh": "SHAP瀑布图",
+      "en": "SHAP waterfall plot",
+      "abbreviation": null
+    },
+    {
+      "zh": "预测阳性案例",
+      "en": "Predicted-positive record",
+      "abbreviation": null
+    },
+    {
+      "zh": "预测阴性案例",
+      "en": "Predicted-negative record",
+      "abbreviation": null
+    },
+    {
+      "zh": "背景记录",
+      "en": "Background records",
+      "abbreviation": null
+    },
+    {
+      "zh": "基线值",
+      "en": "Baseline value",
+      "abbreviation": null
+    },
+    {
+      "zh": "全流程重拟合",
+      "en": "Full-pipeline refitting",
+      "abbreviation": null
+    },
+    {
+      "zh": "前五入选频率",
+      "en": "Top-five inclusion frequency",
+      "abbreviation": null
+    },
+    {
+      "zh": "去除自伤行为敏感性分析",
+      "en": "Sensitivity analysis excluding self-injurious behaviour",
+      "abbreviation": null
+    },
+    {
+      "zh": "分层配对Bootstrap",
+      "en": "Paired, outcome-stratified bootstrap",
+      "abbreviation": null
+    },
+    {
+      "zh": "95%置信区间",
+      "en": "95% confidence interval",
+      "abbreviation": "95% CI"
+    },
+    {
+      "zh": "Holm校正",
+      "en": "Holm adjustment",
+      "abbreviation": null
+    },
+    {
+      "zh": "点二列相关",
+      "en": "Point-biserial correlation",
+      "abbreviation": null
+    },
+    {
+      "zh": "方差膨胀因子",
+      "en": "Variance inflation factor",
+      "abbreviation": "VIF"
+    },
+    {
+      "zh": "独热编码",
+      "en": "One-hot encoding",
+      "abbreviation": null
+    },
+    {
+      "zh": "标准化",
+      "en": "Standardisation",
+      "abbreviation": null
+    },
+    {
+      "zh": "匿名化",
+      "en": "Anonymisation",
+      "abbreviation": null
+    },
+    {
+      "zh": "开发集拟合的Sigmoid映射截距",
+      "en": "Intercept of the fitted sigmoid mapping",
+      "abbreviation": null
+    },
+    {
+      "zh": "开发集拟合的Sigmoid映射斜率",
+      "en": "Slope of the fitted sigmoid mapping",
+      "abbreviation": null
+    },
+    {
+      "zh": "测试集校准诊断截距",
+      "en": "Test-set calibration intercept",
+      "abbreviation": null
+    },
+    {
+      "zh": "测试集校准诊断斜率",
+      "en": "Test-set calibration slope",
+      "abbreviation": null
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+﻿position,source_header_zh,analysis_name_zh,label_en,role
+1,性别,性别,Recorded sex,categorical predictor
+2,民族,民族,Ethnic group,categorical predictor
+3,生源地,生源地,Area of origin,categorical predictor
+4,家庭关系满意度,,Satisfaction with family relationships,excluded
+5,是否独生,是否独生,Only-child status,categorical predictor
+6,学校及专业满意度,,Satisfaction with university and programme,excluded
+7,入学年份,,Entry year,excluded
+8,幻觉、妄想症状,幻觉妄想,Hallucinatory and delusional symptoms,continuous predictor
+9,自杀意念,,Suicidal ideation dimension score,excluded
+10,焦虑,焦虑,Anxiety,continuous predictor
+11,抑郁,抑郁,Depression,continuous predictor
+12,偏执,偏执,Paranoid ideation,continuous predictor
+13,自卑,自卑,Feelings of inferiority,continuous predictor
+14,敏感,敏感,Interpersonal sensitivity,continuous predictor
+15,社交恐惧,社交恐惧,Social phobia symptoms,continuous predictor
+16,躯体化,躯体化,Somatisation,continuous predictor
+17,依赖,依赖,Dependency,continuous predictor
+18,敌对攻击,敌对攻击,Hostility and aggression,continuous predictor
+19,冲动,冲动,Impulsivity,continuous predictor
+20,强迫,强迫,Obsessive-compulsive symptoms,continuous predictor
+21,网络成瘾,网络成瘾,Internet addiction,continuous predictor
+22,自伤行为,自伤行为,Self-injurious behaviour,continuous predictor
+23,进食问题,进食问题,Eating problems,continuous predictor
+24,睡眠困扰,睡眠困扰,Sleep difficulties,continuous predictor
+25,学校适应困难,学校适应困难,University adjustment difficulties,continuous predictor
+26,人际关系困扰,人际关系困扰,Interpersonal relationship difficulties,continuous predictor
+27,学业压力,学业压力,Academic stress,continuous predictor
+28,就业压力,就业问题,Employment-related stress,continuous predictor
+29,恋爱困扰,恋爱困扰,Romantic relationship difficulties,continuous predictor
+30,建议关注方向,,System-recommended areas of concern,outcome source

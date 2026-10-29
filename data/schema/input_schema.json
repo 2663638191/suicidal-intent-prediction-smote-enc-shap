@@ -1,0 +1,53 @@
+{
+  "annual_workbooks": [
+    "2021.xlsx",
+    "2022.xlsx",
+    "2023.xlsx",
+    "2024.xlsx",
+    "2025.xlsx"
+  ],
+  "worksheet_names": [
+    "严重心理危机",
+    "一般心理问题",
+    "潜在心理困扰",
+    "无心理困扰"
+  ],
+  "source_headers": [
+    "性别",
+    "民族",
+    "生源地",
+    "家庭关系满意度",
+    "是否独生",
+    "学校及专业满意度",
+    "入学年份",
+    "幻觉、妄想症状",
+    "自杀意念",
+    "焦虑",
+    "抑郁",
+    "偏执",
+    "自卑",
+    "敏感",
+    "社交恐惧",
+    "躯体化",
+    "依赖",
+    "敌对攻击",
+    "冲动",
+    "强迫",
+    "网络成瘾",
+    "自伤行为",
+    "进食问题",
+    "睡眠困扰",
+    "学校适应困难",
+    "人际关系困扰",
+    "学业压力",
+    "就业压力",
+    "恋爱困扰",
+    "建议关注方向"
+  ],
+  "header_only": true,
+  "participant_response_rows": 0,
+  "outcome_source": "建议关注方向",
+  "positive_flag_text": "自杀意念",
+  "analysis_unit": "screening record",
+  "raw_data_folder": "data/private/original (not supplied)"
+}

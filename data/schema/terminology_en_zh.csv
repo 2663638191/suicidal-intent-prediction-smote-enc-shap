@@ -1,0 +1,61 @@
+﻿chinese,english,abbreviation
+中国大学生心理健康筛查量表,Chinese College Students’ Mental Health Screening Scale,CCSMHSS
+测评记录,Screening record,
+高校新生,University entrants,
+未采样,No resampling,
+SMOTE-ENC,SMOTE-ENC,
+逻辑回归,Logistic regression,LR
+决策树,Decision tree,DT
+随机森林,Random forest,RF
+极端随机树,Extremely randomised trees,ET
+XGBoost,XGBoost,XGB
+LightGBM,LightGBM,LGBM
+开发验证集,Development validation set,
+最终测试集,Final test set,
+五折分层交叉验证,Five-fold stratified cross-validation,
+Sigmoid校准,Sigmoid calibration,
+固定阈值,Frozen classification threshold,
+召回率/敏感度,Sensitivity (recall),
+特异度,Specificity,
+平衡准确率,Balanced accuracy,
+ROC-AUC,Area under the receiver operating characteristic curve,ROC-AUC
+平均精确率AP,Average precision,AP
+精确率/阳性预测值,Positive predictive value,PPV
+阴性预测值,Negative predictive value,NPV
+Brier分数,Brier score,
+校准截距,Calibration intercept,
+校准斜率,Calibration slope,
+预测阳性比例,Proportion flagged for review,
+每千条记录复核数,"Records flagged for review per 1,000 records",
+每千条记录漏识标签阳性数,"Missed system-positive records per 1,000 records",
+每识别一例标签阳性的复核数,Records requiring review per system-positive record identified,
+阳性富集倍数,Enrichment of system-positive records,
+模型阳性/系统阴性记录,"Model-positive, system-negative records",
+复核负担,Review workload,
+专业复核,Professional review,
+SHAP归因,SHAP attribution,SHAP
+校准后log-odds,Calibrated log-odds,
+特征取值,Feature value,
+SHAP贡献值,SHAP value,
+平均绝对SHAP值,Mean absolute SHAP value,
+SHAP蜂群图,SHAP beeswarm plot,
+SHAP瀑布图,SHAP waterfall plot,
+预测阳性案例,Predicted-positive record,
+预测阴性案例,Predicted-negative record,
+背景记录,Background records,
+基线值,Baseline value,
+全流程重拟合,Full-pipeline refitting,
+前五入选频率,Top-five inclusion frequency,
+去除自伤行为敏感性分析,Sensitivity analysis excluding self-injurious behaviour,
+分层配对Bootstrap,"Paired, outcome-stratified bootstrap",
+95%置信区间,95% confidence interval,95% CI
+Holm校正,Holm adjustment,
+点二列相关,Point-biserial correlation,
+方差膨胀因子,Variance inflation factor,VIF
+独热编码,One-hot encoding,
+标准化,Standardisation,
+匿名化,Anonymisation,
+开发集拟合的Sigmoid映射截距,Intercept of the fitted sigmoid mapping,
+开发集拟合的Sigmoid映射斜率,Slope of the fitted sigmoid mapping,
+测试集校准诊断截距,Test-set calibration intercept,
+测试集校准诊断斜率,Test-set calibration slope,
